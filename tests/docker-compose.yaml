@@ -1,0 +1,83 @@
+version: '3.7'
+
+services:
+  vr:
+    container_name: ${VR_API_CONTAINER}
+    build: ../.
+    environment:
+      REDIS_HOST: ${REDIS_CONTAINER}
+      FRONT_REDIS_HOST: ${REDIS_CONTAINER}
+      DB_HOST: ${MONGO_CONTAINER}
+      DB_NAME: ${DB_NAME}
+      REDIS_CLUSTER: ${REDIS_CLUSTER}
+      REDIS_PORT: ${INTERNAL_REDIS_PORT}
+    depends_on:
+      - redis-cluster
+      - mongodb
+    ports:
+      - '${PORT}:${INTERNAL_API_PORT}'
+    volumes:
+      - '../.:/home/node/app/vr.ceek.com'
+      - '/home/node/app/vr.ceek.com/node_modules'
+
+  redis-cluster:
+    container_name: ${REDIS_CONTAINER}
+    image: grokzen/redis-cluster:7.0.7
+    environment:
+      SENTINEL: 'true'
+      INITIAL_PORT:  ${INTERNAL_REDIS_PORT}
+    restart: always
+    ports:
+      - '${REDIS_PORT}:${INTERNAL_REDIS_PORT}'
+
+  mongodb:
+    container_name: ${MONGO_CONTAINER}
+    image: mongo:5.0.18
+    ports:
+      - '${DB_PORT}:${INTERNAL_DB_PORT}'
+    restart: always
+  bash:
+    container_name: ${BASH_CHECK_TCP_CONNECT_CONTAINER}
+    image: bash:4.4
+    depends_on:
+      - redis-cluster
+      - mongodb
+      - vr
+    volumes:
+      - '../tests:/var/temp'
+    # wait for all containers to start
+    command:
+      [
+        '/var/temp/wait-for-it.sh',
+        '${REDIS_CONTAINER}:${INTERNAL_REDIS_PORT}',
+        '--timeout=120',
+        '--',
+        '/var/temp/wait-for-it.sh',
+        '${MONGO_CONTAINER}:${INTERNAL_DB_PORT}',
+        '--timeout=120',
+        '--',
+        '/var/temp/wait-for-it.sh',
+        '${VR_API_CONTAINER}:${INTERNAL_API_PORT}',
+        '--timeout=120',
+        '--',
+      ]
+  wait-mongodb-redis:
+    container_name: ${BASH_CHECK_TCP_CONNECT_CONTAINER_MONGO_REDIS}
+    image: bash:4.4
+    depends_on:
+      - redis-cluster
+      - mongodb
+    volumes:
+      - '../tests:/var/temp'
+    # wait for all containers to start
+    command:
+      [
+        '/var/temp/wait-for-it.sh',
+        '${MONGO_CONTAINER}:${INTERNAL_DB_PORT}',
+        '--timeout=120',
+        '--',
+        '/var/temp/wait-for-it.sh',
+        '${REDIS_CONTAINER}:${INTERNAL_REDIS_PORT}',
+        '--timeout=120',
+        '--',
+      ]

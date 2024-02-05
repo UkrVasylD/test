@@ -1,0 +1,22 @@
+[{
+  "title": "Month",
+  "type": "M",
+  "coins": 100,
+  "price": 9.99,
+  "paypal_plan": "P-95H211349L8340111MHN7RBA",
+  "stripe_plan": "plan_HIipW1doQoWbEi"
+},{
+  "title": "Season",
+  "type": "S",
+  "coins": 300,
+  "price": 24.99,
+  "paypal_plan": "P-7NC42422E6837300VMHN7RBA",
+  "stripe_plan": "plan_HIirP996HKBXiS"
+},{
+  "title": "Year",
+  "type": "Y",
+  "coins": 1500,
+  "price": 69.99,
+  "paypal_plan": "P-1DP24475EV883673EMHN7RBA",
+  "stripe_plan": "price_1GpquzDcJe7tYfWZ5MHWmz2r"
+}]
